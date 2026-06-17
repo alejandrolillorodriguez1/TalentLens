@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 def llamar_modelo(prompt):
@@ -9,4 +11,6 @@ def llamar_modelo(prompt):
             "stream": False
         })
     data = response.json()
-    return data["response"]
+    solution = data["response"]
+    py_solution = json.loads(solution)
+    return py_solution["skills"]

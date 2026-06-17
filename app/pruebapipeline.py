@@ -1,5 +1,6 @@
 from services.skill_stractor import llamar_modelo
 from services.pdf_reader import extract_text_pdf
+from services.evaluator import evaluate_candidate
 
 print("Leyendo PDF...")
 
@@ -33,6 +34,8 @@ CV:
 {cv_text}
 """)
 
-print("Respuesta recibida")
-
-print(respuesta)
+candidate_skills = respuesta
+required_skills = ["Python", "Azure", "Java"]
+evaluation = evaluate_candidate(required_skills, candidate_skills)
+print("Evaluación del candidato:" )
+print(evaluation)
