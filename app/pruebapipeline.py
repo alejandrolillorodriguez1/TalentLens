@@ -5,16 +5,14 @@ from services.evaluator import evaluate_candidate
 print("Leyendo PDF...")
 
 cv_text = extract_text_pdf("CV_Alejandro_Lillo.pdf")
+cv_oferta = extract_text_pdf("Oferta_Desarrollador.pdf")
 
-print("PDF leído")
-print(f"Caracteres: {len(cv_text)}")
 
-print("Enviando a Ollama...")
-
-respuesta = llamar_modelo(f"""
+def build_prompt(texto):
+        return f"""
 Eres un sistema de extracción de información para recursos humanos.
 
-Extrae TODAS las habilidades técnicas del siguiente CV.
+Extrae únicamente las habilidades técnicas de este texto.
 
 Devuelve únicamente JSON válido.
 No escribas explicaciones.
@@ -29,13 +27,23 @@ Formato exacto:
     "SQL"
   ]
 }}
-CV:
 
-{cv_text}
-""")
+Texto:
+{texto}
+"""
 
-candidate_skills = respuesta
-required_skills = ["Python", "Azure", "Java"]
-evaluation = evaluate_candidate(required_skills, candidate_skills)
-print("Evaluación del candidato:" )
-print(evaluation)
+def extract_skills_from_cv(cv_text):
+    prompt = build_prompt(cv_text)
+    skills = llamar_modelo(prompt)
+    return skills
+
+def extract_skills_from_job_offer(cv_oferta):
+    prompt = build_prompt(cv_oferta)
+    skills = llamar_modelo(prompt)
+    return skills
+
+candidate_skills = extract_skills_from_cv(cv_text)
+required_skills = extract_skills_from_job_offer(cv_oferta)
+
+evaluation_result = evaluate_candidate(required_skills, candidate_skills)
+print(evaluation_result)
