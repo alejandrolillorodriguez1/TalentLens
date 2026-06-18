@@ -71,3 +71,9 @@ async def evaluate_candidate_endpoint(cv_text : UploadFile = File(...),cv_oferta
         "missing_skills": evaluation_result["missing_skills"]
     }
 
+@app.get("/candidates")
+def get_candidates():
+   db = session()
+   candidates = db.query(Candidate).all()
+   db.close()
+   return candidates
