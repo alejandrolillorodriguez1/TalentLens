@@ -2,8 +2,13 @@ from fastapi import FastAPI,UploadFile, File
 from app.services.evaluator import evaluate_candidate
 from app.services.skill_stractor import llamar_modelo
 from app.services.pdf_reader import extract_text_pdf
+from app.models.candidate_db import Candidate
+from app.db import engine, session
+import json
 
 app = FastAPI()
+
+Candidate.metadata.create_all(bind=engine)
 
 def build_prompt(texto):
     return f"""
@@ -44,5 +49,25 @@ async def evaluate_candidate_endpoint(cv_text : UploadFile = File(...),cv_oferta
     skills_cv = llamar_modelo(promt_cv)
     skills_oferta = llamar_modelo(promt_oferta)
     evaluation_result = evaluate_candidate(skills_oferta, skills_cv)
-    return evaluation_result
+
+    db = session()
+    candidate = Candidate(
+        cv_name=cv_text.filename,
+        offer_name=cv_oferta.filename,
+        candidate_skills=json.dumps(skills_cv),
+        required_skills=json.dumps(skills_oferta),
+        score=evaluation_result["score"],
+        decision=evaluation_result["decision"]
+    )
+    db.add(candidate)
+    db.commit()
+    db.refresh(candidate)
+    db.close()
+    return {
+        "candidate_id": candidate.id,
+        "decision": evaluation_result["decision"],
+        "score": evaluation_result["score"],
+        "matched_skills": evaluation_result["matched_skills"],
+        "missing_skills": evaluation_result["missing_skills"]
+    }
 
