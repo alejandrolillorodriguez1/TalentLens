@@ -7,6 +7,7 @@ function App() {
   const [result, setResult] = useState(null);
   const [title,setTitle] = useState("");
   const [description,setDescription] = useState("");
+  const [candidates,setCandidates] = useState([])
 
   useEffect(() => {
     axios
@@ -14,6 +15,7 @@ function App() {
       .then((response) => {
         setOffers(response.data);
       })
+      showCandidates()
       .catch((error) => {
         console.error("Error cargando ofertas:", error);
       });
@@ -76,12 +78,22 @@ function App() {
       alert("Error creando la oferta");
     }
   }
+
+  const showCandidates = async() => {
+    try{
+      const response = await axios.get("http://127.0.0.1:8000/candidates");
+      setCandidates(response.data)
+    }catch(error){
+      console.error(error)
+    }
+
+  }
     
 
   return (
     <div>
       <h1>TalentLens</h1>
-      
+
       <h2>Crear oferta</h2>
 
         <form onSubmit={handleCreateOffer}>
@@ -142,6 +154,29 @@ function App() {
           </ul>
         </div>
       )}
+      <h2>Candidatos</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>CV</th>
+              <th>Oferta</th>
+              <th>Score</th>
+              <th>Decisión</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {candidates.map((candidate) => (
+              <tr key={candidate.id}>
+                <td>{candidate.cv_name}</td>
+                <td>{candidate.offer_name}</td>
+                <td>{candidate.score}</td>
+                <td>{candidate.decision}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
     </div>
   );
 }
