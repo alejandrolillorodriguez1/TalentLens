@@ -1,122 +1,105 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [offers, setOffers] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState({});
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/offers")
+      .then((response) => {
+        setOffers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error cargando ofertas:", error);
+      });
+  }, []);
+
+  const handleFileChange = (offerId, file) => {
+    setSelectedFiles({
+      ...selectedFiles,
+      [offerId]: file,
+    });
+  };
+
+  const handleApply = async (offerId) => {
+    const file = selectedFiles[offerId];
+
+    if (!file) {
+      alert("Selecciona un CV en PDF antes de aplicar.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("cv_file", file);
+
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/apply/${offerId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setResult(response.data);
+    } catch (error) {
+      console.error("Error aplicando a la oferta:", error);
+      alert("Ha ocurrido un error al enviar el CV.");
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div>
+      <h1>TalentLens</h1>
+
+      <h2>Ofertas disponibles</h2>
+
+      {offers.map((offer) => (
+        <div key={offer.id}>
+          <h3>{offer.title}</h3>
+          <p>{offer.description}</p>
+
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => handleFileChange(offer.id, e.target.files[0])}
+          />
+
+          <button onClick={() => handleApply(offer.id)}>
+            Aplicar a esta oferta
+          </button>
         </div>
+      ))}
+
+      {result && (
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+          <h2>Resultado</h2>
+          <p>Oferta: {result.offer_name}</p>
+          <p>Score: {result.score}</p>
+          <p>Decisión: {result.decision}</p>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
+          <h3>Skills del candidato</h3>
           <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
+            {result.candidate_skills.map((skill, index) => (
+              <li key={index}>{skill}</li>
+            ))}
+          </ul>
+
+          <h3>Skills requeridas</h3>
+          <ul>
+            {result.required_skills.map((skill, index) => (
+              <li key={index}>{skill}</li>
+            ))}
           </ul>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
