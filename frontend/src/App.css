@@ -182,3 +182,133 @@
     border-right-color: var(--border);
   }
 }
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #f4f7fb;
+  color: #172033;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+h1 {
+  font-size: 42px;
+  margin-bottom: 8px;
+  color: #0f172a;
+}
+
+h2 {
+  margin-top: 32px;
+  color: #1e293b;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  margin: 6px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.card,
+form,
+.result,
+table {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  margin: 18px 0;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.offer-card {
+  background: white;
+  border-left: 5px solid #2563eb;
+  border-radius: 16px;
+  padding: 22px;
+  margin: 18px 0;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.role-buttons {
+  margin: 24px 0;
+}
+
+.role-buttons button {
+  background: #0f172a;
+}
+
+.role-buttons button:hover {
+  background: #334155;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+}
+
+th {
+  background: #0f172a;
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tr:hover {
+  background: #f8fafc;
+}
+
+.result {
+  border-left: 5px solid #22c55e;
+}
+
+ul {
+  padding-left: 22px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px;
+}

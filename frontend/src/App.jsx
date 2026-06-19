@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import "./App.css"
 
 function App() {
   const [role, setRole] = useState("user");
@@ -92,7 +93,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="app">
       <h1>TalentLens</h1>
 
       <button onClick={() => setRole("user")}>Usuario</button>
@@ -152,7 +153,7 @@ function App() {
           <h2>Ofertas disponibles</h2>
 
           {offers.map((offer) => (
-            <div key={offer.id}>
+            <div key={offer.id} className="offer-card">
               <h3>{offer.title}</h3>
               <p>{offer.description}</p>
 
@@ -171,12 +172,11 @@ function App() {
           ))}
 
           {result && (
-            <div>
+            <div className="result">
               <h2>Resultado</h2>
               <p>Oferta: {result.offer_name}</p>
               <p>Score: {result.score}</p>
               <p>Decisión: {result.decision}</p>
-
               <h3>Skills del candidato</h3>
               <ul>
                 {result.candidate_skills.map((skill, index) => (
