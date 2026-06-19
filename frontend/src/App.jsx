@@ -5,6 +5,8 @@ function App() {
   const [offers, setOffers] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState({});
   const [result, setResult] = useState(null);
+  const [title,setTitle] = useState("");
+  const [description,setDescription] = useState("");
 
   useEffect(() => {
     axios
@@ -53,9 +55,51 @@ function App() {
     }
   };
 
+  const handleCreateOffer = async (e) => {
+    e.preventDefault();
+    if (!title || !description) {
+      alert("Por favor, completa todos los campos para crear una oferta.");
+      return;
+    }
+    
+    try {
+      await axios.post("http://127.0.0.1:8000/offers",{
+        title : title,
+        description : description
+      });
+      setTitle("");
+      setDescription("");
+      const response = await axios.get("http://127.0.0.1:8000/offers")
+      setOffers(response.data);
+    }catch(error){
+      console.error("Error creando oferta:", error);
+      alert("Error creando la oferta");
+    }
+  }
+    
+
   return (
     <div>
       <h1>TalentLens</h1>
+      
+      <h2>Crear oferta</h2>
+
+        <form onSubmit={handleCreateOffer}>
+          <input
+            type="text"
+            placeholder="Título de la oferta"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          <textarea
+            placeholder="Descripción de la oferta"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          <button type="submit">Crear oferta</button>
+        </form>
 
       <h2>Ofertas disponibles</h2>
 
