@@ -2,23 +2,38 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 function App() {
+  const [role, setRole] = useState("user");
+
   const [offers, setOffers] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState({});
   const [result, setResult] = useState(null);
-  const [title,setTitle] = useState("");
-  const [description,setDescription] = useState("");
-  const [candidates,setCandidates] = useState([])
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  const [candidates, setCandidates] = useState([]);
+
+  const loadOffers = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/offers");
+      setOffers(response.data);
+    } catch (error) {
+      console.error("Error cargando ofertas:", error);
+    }
+  };
+
+  const loadCandidates = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/candidates");
+      setCandidates(response.data);
+    } catch (error) {
+      console.error("Error cargando candidatos:", error);
+    }
+  };
 
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:8000/offers")
-      .then((response) => {
-        setOffers(response.data);
-      })
-      showCandidates()
-      .catch((error) => {
-        console.error("Error cargando ofertas:", error);
-      });
+    loadOffers();
+    loadCandidates();
   }, []);
 
   const handleFileChange = (offerId, file) => {
@@ -42,15 +57,11 @@ function App() {
     try {
       const response = await axios.post(
         `http://127.0.0.1:8000/apply/${offerId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
 
       setResult(response.data);
+      await loadCandidates();
     } catch (error) {
       console.error("Error aplicando a la oferta:", error);
       alert("Ha ocurrido un error al enviar el CV.");
@@ -59,124 +70,130 @@ function App() {
 
   const handleCreateOffer = async (e) => {
     e.preventDefault();
+
     if (!title || !description) {
-      alert("Por favor, completa todos los campos para crear una oferta.");
+      alert("Por favor, completa todos los campos.");
       return;
     }
-    
+
     try {
-      await axios.post("http://127.0.0.1:8000/offers",{
-        title : title,
-        description : description
+      await axios.post("http://127.0.0.1:8000/offers", {
+        title,
+        description,
       });
+
       setTitle("");
       setDescription("");
-      const response = await axios.get("http://127.0.0.1:8000/offers")
-      setOffers(response.data);
-    }catch(error){
+      await loadOffers();
+    } catch (error) {
       console.error("Error creando oferta:", error);
       alert("Error creando la oferta");
     }
-  }
-
-  const showCandidates = async() => {
-    try{
-      const response = await axios.get("http://127.0.0.1:8000/candidates");
-      setCandidates(response.data)
-    }catch(error){
-      console.error(error)
-    }
-
-  }
-    
+  };
 
   return (
     <div>
       <h1>TalentLens</h1>
 
-      <h2>Crear oferta</h2>
+      <button onClick={() => setRole("user")}>Usuario</button>
+      <button onClick={() => setRole("admin")}>Admin</button>
 
-        <form onSubmit={handleCreateOffer}>
-          <input
-            type="text"
-            placeholder="Título de la oferta"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+      {role === "admin" && (
+        <>
+          <h2>Panel administrador</h2>
 
-          <textarea
-            placeholder="Descripción de la oferta"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+          <h3>Crear oferta</h3>
 
-          <button type="submit">Crear oferta</button>
-        </form>
+          <form onSubmit={handleCreateOffer}>
+            <input
+              type="text"
+              placeholder="Título de la oferta"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
 
-      <h2>Ofertas disponibles</h2>
+            <textarea
+              placeholder="Descripción de la oferta"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
 
-      {offers.map((offer) => (
-        <div key={offer.id}>
-          <h3>{offer.title}</h3>
-          <p>{offer.description}</p>
+            <button type="submit">Crear oferta</button>
+          </form>
 
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={(e) => handleFileChange(offer.id, e.target.files[0])}
-          />
+          <h3>Candidatos evaluados</h3>
 
-          <button onClick={() => handleApply(offer.id)}>
-            Aplicar a esta oferta
-          </button>
-        </div>
-      ))}
-
-      {result && (
-        <div>
-          <h2>Resultado</h2>
-          <p>Oferta: {result.offer_name}</p>
-          <p>Score: {result.score}</p>
-          <p>Decisión: {result.decision}</p>
-
-          <h3>Skills del candidato</h3>
-          <ul>
-            {result.candidate_skills.map((skill, index) => (
-              <li key={index}>{skill}</li>
-            ))}
-          </ul>
-
-          <h3>Skills requeridas</h3>
-          <ul>
-            {result.required_skills.map((skill, index) => (
-              <li key={index}>{skill}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <h2>Candidatos</h2>
-
-        <table>
-          <thead>
-            <tr>
-              <th>CV</th>
-              <th>Oferta</th>
-              <th>Score</th>
-              <th>Decisión</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {candidates.map((candidate) => (
-              <tr key={candidate.id}>
-                <td>{candidate.cv_name}</td>
-                <td>{candidate.offer_name}</td>
-                <td>{candidate.score}</td>
-                <td>{candidate.decision}</td>
+          <table>
+            <thead>
+              <tr>
+                <th>CV</th>
+                <th>Oferta</th>
+                <th>Score</th>
+                <th>Decisión</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {candidates.map((candidate) => (
+                <tr key={candidate.id}>
+                  <td>{candidate.cv_name}</td>
+                  <td>{candidate.offer_name}</td>
+                  <td>{candidate.score}</td>
+                  <td>{candidate.decision}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {role === "user" && (
+        <>
+          <h2>Ofertas disponibles</h2>
+
+          {offers.map((offer) => (
+            <div key={offer.id}>
+              <h3>{offer.title}</h3>
+              <p>{offer.description}</p>
+
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) =>
+                  handleFileChange(offer.id, e.target.files[0])
+                }
+              />
+
+              <button onClick={() => handleApply(offer.id)}>
+                Aplicar a esta oferta
+              </button>
+            </div>
+          ))}
+
+          {result && (
+            <div>
+              <h2>Resultado</h2>
+              <p>Oferta: {result.offer_name}</p>
+              <p>Score: {result.score}</p>
+              <p>Decisión: {result.decision}</p>
+
+              <h3>Skills del candidato</h3>
+              <ul>
+                {result.candidate_skills.map((skill, index) => (
+                  <li key={index}>{skill}</li>
+                ))}
+              </ul>
+
+              <h3>Skills requeridas</h3>
+              <ul>
+                {result.required_skills.map((skill, index) => (
+                  <li key={index}>{skill}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
