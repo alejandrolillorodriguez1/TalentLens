@@ -13,10 +13,11 @@ function App() {
   const [description, setDescription] = useState("");
 
   const [candidates, setCandidates] = useState([]);
+   const API_URL = "http://127.0.0.1:8001";
 
   const loadOffers = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/offers");
+      const response = await axios.get(`${API_URL}/offers`);
       setOffers(response.data);
     } catch (error) {
       console.error("Error cargando ofertas:", error);
@@ -25,7 +26,7 @@ function App() {
 
   const loadCandidates = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/candidates");
+      const response = await axios.get(`${API_URL}/candidates`);
       setCandidates(response.data);
     } catch (error) {
       console.error("Error cargando candidatos:", error);
@@ -57,7 +58,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        `http://127.0.0.1:8000/apply/${offerId}`,
+        `${API_URL}/apply/${offerId}`,
         formData
       );
 
@@ -78,9 +79,9 @@ function App() {
     }
 
     try {
-      await axios.post("http://127.0.0.1:8000/offers", {
-        title,
-        description,
+      await axios.post(`${API_URL}/offers`, {
+        offer_name : title,
+        description
       });
 
       setTitle("");
@@ -154,7 +155,7 @@ function App() {
 
           {offers.map((offer) => (
             <div key={offer.id} className="offer-card">
-              <h3>{offer.title}</h3>
+              <h3>{offer.offer_name}</h3>
               <p>{offer.description}</p>
 
               <input

@@ -7,8 +7,23 @@ from app.models.offer_db import JobOffer
 from app.db import engine, session,Base
 from pydantic import BaseModel
 import json
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+origins = [
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -41,7 +56,7 @@ Texto:
 {texto}
 """
 
-app.post("/job_offer")
+@app.post("/offers")
 async def create_job_offer(offer: JobOfferRequest):
     required_skills = llamar_modelo(build_prompt(offer.description))
     db = session()
@@ -61,14 +76,14 @@ async def create_job_offer(offer: JobOfferRequest):
         "required_skills": required_skills
     }
 
-app.get("/job_offers")
+@app.get("/offers")
 def get_job_offers():
     db = session()
     job_offers = db.query(JobOffer).all()
     db.close()
     return job_offers
 
-@app.post("apply_offer/{offer_id}")
+@app.post("/apply/{offer_id}")
 async def apply_offer(offer_id: int, cv_file: UploadFile = File(...)):
     db = session()
     job_offer = db.query(JobOffer).filter(JobOffer.id == offer_id).first()
@@ -77,8 +92,9 @@ async def apply_offer(offer_id: int, cv_file: UploadFile = File(...)):
         db.close()
         return {"error": "Job offer not found"}
     
+    content = await cv_file.read()
     with open(cv_file.filename, "wb") as f:
-        f.write(await cv_file.file.read())
+        f.write(content)
     cv_text = extract_text_pdf(cv_file.filename)
     candidate_skills = llamar_modelo(build_prompt(cv_text))
     required_skills = json.loads(job_offer.required_skills)
@@ -110,3 +126,17 @@ def get_candidates():
    candidates = db.query(Candidate).all()
    db.close()
    return candidates
+
+@app.delete("/reset")
+def reset_demo():
+    db = session()
+
+    db.query(Candidate).delete()
+    db.query(JobOffer).delete()
+
+    db.commit()
+    db.close()
+
+    return {"message": "Demo reiniciada correctamente"}
+
+
